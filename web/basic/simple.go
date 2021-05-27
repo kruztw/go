@@ -13,6 +13,7 @@ func home(w http.ResponseWriter, r *http.Request) {
 
 func home2(w http.ResponseWriter, r *http.Request) {
     w.WriteHeader(http.StatusOK)
+    w.Header().Set("Referer", "localhost")
     w.Write([]byte(`This is home2`))
 }
 
@@ -40,6 +41,8 @@ func login(w http.ResponseWriter, r *http.Request) {
         obj.Passwd_str  = "passwd"
         tmpl.Execute(w, obj)
     case "POST":
+        cookie    :=    http.Cookie{Name:"user",Value:"guest"}
+        http.SetCookie(w, &cookie)
         fmt.Fprintf(w, "login success")
     }
 }
