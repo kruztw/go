@@ -8,6 +8,11 @@ import (
 )
 
 func home(w http.ResponseWriter, r *http.Request) {
+    query := r.URL.Query()
+    arg1, ok := query["arg1"]
+    if ok && len(arg1[0]) > 0 {
+        fmt.Printf("arg1 = %s\n", arg1[0])
+    }
     fmt.Fprintf(w, "This is home")
 }
 
