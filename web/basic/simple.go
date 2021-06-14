@@ -5,6 +5,7 @@ import (
     "net/http"
     "log"
     "html/template"
+    "encoding/json"
 )
 
 func home(w http.ResponseWriter, r *http.Request) {
@@ -20,6 +21,16 @@ func home2(w http.ResponseWriter, r *http.Request) {
     w.WriteHeader(http.StatusOK)
     w.Header().Set("Referer", "localhost")
     w.Write([]byte(`This is home2`))
+}
+
+func JSONmessage(w http.ResponseWriter, code int, msg string){
+    json.NewEncoder(w).Encode(map[string]string{"msg": msg})
+}
+
+func home3(w http.ResponseWriter, r *http.Request) {
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(map[string]string{"msg": "This is home3"})
+    return
 }
 
 func html(w http.ResponseWriter, r *http.Request) {
@@ -55,6 +66,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 func main() {
     http.HandleFunc("/", home)
     http.HandleFunc("/home2", home2)
+    http.HandleFunc("/home3", home3)
     http.HandleFunc("/html", html)
     http.HandleFunc("/login", login)
     err := http.ListenAndServe(":8888", nil)
