@@ -12,6 +12,12 @@ func main() {
     var err error
     db, err = sql.Open("sqlite3", "./sqlite.db")
 
+    stmt, _ := db.Prepare("CREATE TABLE IF NOT EXISTS users(username, password)")
+    stmt.Exec()
+
+    stmt, _ = db.Prepare("INSERT INTO users(username, password) VALUES (?, ?)")
+    stmt.Exec("kruztw", "secret")
+
     checkError(err)
     query := "select * from users;"
     rows, err := db.Query(query)

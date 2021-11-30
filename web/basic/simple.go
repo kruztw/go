@@ -8,6 +8,8 @@ import (
     "encoding/json"
 )
 
+var tmpl = template.Must(template.ParseFiles("./login.html"))
+
 func home(w http.ResponseWriter, r *http.Request) {
     query := r.URL.Query()
     arg1, ok := query["arg1"]
@@ -43,6 +45,7 @@ func html(w http.ResponseWriter, r *http.Request) {
     w.Write([]byte(str))
 }
 
+
 type myTempl struct {
     Account_str   string // 開頭要大寫
     Passwd_str    string
@@ -51,7 +54,6 @@ type myTempl struct {
 func login(w http.ResponseWriter, r *http.Request) {
     switch r.Method {
     case "GET":
-        tmpl := template.Must(template.ParseFiles("./login.html"))
         obj := new(myTempl)
         obj.Account_str = "account"
         obj.Passwd_str  = "passwd"
@@ -63,12 +65,25 @@ func login(w http.ResponseWriter, r *http.Request) {
     }
 }
 
+
+type XSS struct {
+    Payload   template.HTML
+}
+
+func xssHandler(w http.ResponseWriter, r *http.Request) {
+    tmpl := template.Must(template.ParseFiles("./xss.html"))
+    obj := XSS{Payload: template.HTML("<script>alert(1);</script>")}
+    tmpl.Execute(w, obj)
+}
+
+
 func main() {
     http.HandleFunc("/", home)
     http.HandleFunc("/home2", home2)
     http.HandleFunc("/home3", home3)
     http.HandleFunc("/html", html)
     http.HandleFunc("/login", login)
+    http.HandleFunc("/xss", xssHandler)
     err := http.ListenAndServe(":8888", nil)
     if err != nil {
         log.Fatal("ListenAndServe: ", err)
