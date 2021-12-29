@@ -6,17 +6,28 @@ import (
     "log"
     "html/template"
     "encoding/json"
+    "strings"
 )
 
 var tmpl = template.Must(template.ParseFiles("./login.html"))
 
 func home(w http.ResponseWriter, r *http.Request) {
-    query := r.URL.Query()
+    query := r.URL.Query() // GET variable
     arg1, ok := query["arg1"]
     if ok && len(arg1[0]) > 0 {
         fmt.Printf("arg1 = %s\n", arg1[0])
     }
     fmt.Fprintf(w, "This is home")
+}
+
+func postVar(w http.ResponseWriter, r *http.Request) {
+    r.ParseForm()
+    arg1:= strings.Join(r.PostForm["arg1"], "")
+    if len(arg1) > 0 {
+        fmt.Printf("arg1 = %s\n", arg1)
+    }
+
+    fmt.Fprintf(w, "This is postvar")
 }
 
 func home2(w http.ResponseWriter, r *http.Request) {
@@ -84,6 +95,8 @@ func main() {
     http.HandleFunc("/html", html)
     http.HandleFunc("/login", login)
     http.HandleFunc("/xss", xssHandler)
+    http.HandleFunc("/postVar", postVar)
+
     err := http.ListenAndServe(":8888", nil)
     if err != nil {
         log.Fatal("ListenAndServe: ", err)
