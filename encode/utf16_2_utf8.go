@@ -2,10 +2,15 @@
 
 package main
 
-import "fmt"
-import "unicode/utf16"
-import "unicode/utf8"
-import "bytes"
+import (
+	"bytes"
+	"fmt"
+	"unicode/utf16"
+	"unicode/utf8"
+
+	"golang.org/x/text/encoding/unicode"
+	"golang.org/x/text/transform"
+)
 
 func main() {
 	b := []byte{
@@ -25,19 +30,27 @@ func main() {
 		0x00,
 	}
 
-	s, err := DecodeUTF16(b)
+	s1, err := DecodeUTF16_method1(b)
 	if err != nil {
 		panic(err)
 	}
 
-	fmt.Println(s)
+	fmt.Println(s1)
+
+	s2, err := DecodeUTF16_method2(b)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(s2)
 }
 
-func DecodeUTF16(b []byte) (string, error) {
-	if len(b)%2 != 0 {
+func DecodeUTF16_method1(b []byte) (string, error) {
+	if len(b)%2 != 0 || len(b) <= 1 {
 		return "", fmt.Errorf("Must have even length byte slice")
 	}
 
+	b = b[2:] // ignore BOM
 	u16s := make([]uint16, 1)
 	ret := &bytes.Buffer{}
 	b8buf := make([]byte, 4)
@@ -51,4 +64,13 @@ func DecodeUTF16(b []byte) (string, error) {
 	}
 
 	return ret.String(), nil
+}
+
+func DecodeUTF16_method2(b []byte) (string, error) {
+	u8datas, _, err := transform.Bytes(unicode.UTF16(unicode.LittleEndian, unicode.ExpectBOM).NewDecoder(), b)
+	if err != nil {
+		return "", err
+	}
+
+	return string(u8datas), nil
 }
