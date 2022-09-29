@@ -1,3 +1,5 @@
+// ref: https://gist.github.com/jemygraw/4da51d58b349bfddd0c5
+
 package main
 
 import (
