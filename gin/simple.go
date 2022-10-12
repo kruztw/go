@@ -36,5 +36,5 @@ func main() {
 	server := gin.Default()
 	server.LoadHTMLGlob("template/*")
 	server.GET("/", test)
-	server.Run(":8888")
+	server.Run("127.0.0.1:8888")
 }
