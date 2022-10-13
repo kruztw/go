@@ -9,13 +9,7 @@ import (
 	"net/url"
 )
 
-type RegisterRequest struct {
-	UUID        string `json:"uuid"`
-	Platform    string `json:"platform"`
-	WsPublicKey string `json:"ws_public_key"`
-	Hostname    string `json:"hostname"`
-	FQDN        string `json:"fqdn"`
-}
+type RegisterRequest struct{}
 
 func main() {
 
