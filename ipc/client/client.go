@@ -1,8 +1,6 @@
 package main
 
 import (
-	"bufio"
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"net"
@@ -11,102 +9,72 @@ import (
 )
 
 type Request struct {
-	Action string          `json:"action"`
-	Data   json.RawMessage `json:"data"`
+	Action string `json:"action"`
 }
 
-type regReq struct {
-	ConnectKey string `json:"connectKey"`
-}
-
-type StringIpc struct {
-	c *bufio.Scanner
-	m net.Conn
-	t []byte
-	l int
-}
-
-func (s *StringIpc) tokenize(data []byte, atEOF bool) (advance int, token []byte, err error) {
-	if atEOF && len(data) == 0 {
-		return 0, nil, nil
-	}
-	if i := bytes.Index(data, s.t); i >= 0 {
-		return i + s.l, data[0:i], nil
-	}
-	if atEOF {
-		return len(data), data, nil
-	}
-	return 0, nil, nil
-}
-
-func NewStringIpc(m net.Conn, spliter []byte) (c *StringIpc) {
-	scanner := bufio.NewScanner(m)
-	if scanner == nil {
-		fmt.Println("memory error")
-		return
-	}
-
-	c = &StringIpc{
-		m: m,
-		c: scanner,
-		t: spliter,
-		l: len(spliter),
-	}
-	if c == nil {
-		fmt.Println("memory error")
-		return
-	}
-
-	scanner.Split(c.tokenize)
-
-	return
-}
-
-func (s *StringIpc) Read() (data []byte, err error) {
-	if !s.c.Scan() {
-		err = s.c.Err()
+func readIPC(conn net.Conn) ([]byte, error) {
+	len := make([]byte, 1)
+	if _, err := conn.Read(len); err != nil {
 		return nil, err
 	}
 
-	return s.c.Bytes(), nil
-}
-
-func (s *StringIpc) Write(data []byte) (err error) {
-	dataWithToken := append(data, s.t...)
-
-	_, err = s.m.Write(dataWithToken)
+	body := make([]byte, len[0])
+	n, err := conn.Read(body)
 	if err != nil {
-		fmt.Println(err)
-		return
+		return nil, err
 	}
-	return
+
+	if n != int(len[0]) {
+		return nil, fmt.Errorf("msg loss\n")
+	}
+
+	return body, nil
 }
 
-func Reg(token string) {
+func writeIPC(conn net.Conn, data []byte) error {
+	n := byte(len(data))
+	if n > 255 {
+		return fmt.Errorf("data is too long")
+	}
+
+	msg := append([]byte{n}, data...)
+
+	if _, err := conn.Write(msg); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func main() {
 	conn, err := npipe.Dial(`\\.\pipe\pipe1`)
 	if err != nil {
-		fmt.Println("npipe dial failed: %v", err)
+		fmt.Printf("npipe dial failed: %v\n", err)
 		return
 	}
 
 	defer conn.Close()
-	c := NewStringIpc(conn, []byte("^^2552*1814^^"))
-	regreq := regReq{
-		ConnectKey: token,
-	}
 
-	rawReq, err := json.Marshal(regreq)
 	req := Request{
-		Action: "register",
-		Data:   rawReq,
+		Action: "hello",
 	}
-	reqM, err := json.Marshal(req)
-	c.Write(reqM)
 
-	res, err := c.Read()
-	fmt.Printf("res: %v\n", res)
-}
+	rawReq, err := json.Marshal(req)
+	if err != nil {
+		fmt.Printf("Marshal failed: %v\n", err)
+		return
+	}
 
-func main() {
-	Reg("abc")
+	if err := writeIPC(conn, rawReq); err != nil {
+		fmt.Printf("writeIPC failed: %v\n", err)
+		return
+	}
+
+	resp, err := readIPC(conn)
+	if err != nil {
+		fmt.Printf("readIPC failed: %v\n", err)
+		return
+	}
+
+	fmt.Printf("response: %v\n", string(resp))
 }
