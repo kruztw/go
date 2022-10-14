@@ -5,6 +5,10 @@ import (
 	"fmt"
 )
 
+var (
+	ServiceAbortCtx, ServiceAbortFunc = context.WithCancel(context.Background())
+)
+
 func isServiceAbort(ctx context.Context) bool {
 	select {
 	case <-ctx.Done():
@@ -14,12 +18,15 @@ func isServiceAbort(ctx context.Context) bool {
 	return false
 }
 
-func main() {
+func ResetServiceContext() {
+	ServiceAbortCtx, ServiceAbortFunc = context.WithCancel(context.Background())
+}
 
-	ServiceAbortCtx, ServiceAbortFunc := context.WithCancel(context.Background())
+func main() {
 
 	fmt.Printf("service is abort: %v\n", isServiceAbort(ServiceAbortCtx))
 	ServiceAbortFunc()
 	fmt.Printf("service is abort: %v\n", isServiceAbort(ServiceAbortCtx))
+	ResetServiceContext()
 	fmt.Printf("service is abort: %v\n", isServiceAbort(ServiceAbortCtx))
 }
