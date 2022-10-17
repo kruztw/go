@@ -14,18 +14,14 @@ func foo() {
 
 func main() {
 	quit := make(chan bool)
-	runFoo := false
 
 	go func() {
+		go foo()
 		for {
 			select {
 			case <-quit:
 				return
 			default:
-				if !runFoo {
-					go foo()
-				}
-				runFoo = true
 				time.Sleep(time.Second)
 			}
 		}
