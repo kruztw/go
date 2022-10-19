@@ -39,14 +39,15 @@ func main() {
 	}
 
 	fmt.Printf("val = %v\n", val)
+	client.Del("key")
 
-	val2, err := client.Get("key2").Result()
+	val2, err := client.Get("key").Result()
 	if err == redis.Nil {
-		fmt.Println("val2 does not exist")
+		fmt.Println("val does not exist")
 	} else if err != nil {
 		fmt.Printf("client.Get failed: %v\n", err)
 		return
 	} else {
-		fmt.Printf("key2 = %v\n", val2)
+		fmt.Printf("key = %v\n", val2)
 	}
 }
