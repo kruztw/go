@@ -17,7 +17,7 @@ type header struct {
 	Password string `header:"password`
 }
 
-func test(c *gin.Context) {
+func get(c *gin.Context) {
 	var h header
 	if err := c.ShouldBindHeader(&h); err != nil {
 		c.String(404, "err: %v", err)
@@ -25,16 +25,24 @@ func test(c *gin.Context) {
 	}
 
 	fmt.Printf("h = %v\n", h)
-
 	data := new(IndexData)
-	data.Title = "首頁"
-	data.Content = "我的第一個首頁"
+	data.Title = c.DefaultQuery("title", "default")
+	data.Content = c.DefaultQuery("content", "default")
 	c.HTML(http.StatusOK, "index.html", data)
 }
 
 func main() {
 	server := gin.Default()
 	server.LoadHTMLGlob("template/*")
-	server.GET("/", test)
+	server.Use(gin.Recovery()) // (a)
+	server.GET("/", get)
+	server.GET("/panic", func(c *gin.Context) {
+		defer func() {
+			if err := recover(); err != nil { // because of (a), return 200
+				fmt.Printf("error: %v\n", err)
+			}
+		}()
+		panic("panic")
+	})
 	server.Run("127.0.0.1:8888")
 }
