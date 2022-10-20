@@ -31,6 +31,10 @@ func get(c *gin.Context) {
 	c.HTML(http.StatusOK, "index.html", data)
 }
 
+func get_post(c *gin.Context) {
+	fmt.Printf("it works\n")
+}
+
 func main() {
 	server := gin.Default()
 	server.LoadHTMLGlob("template/*")
@@ -44,5 +48,7 @@ func main() {
 		}()
 		panic("panic")
 	})
+	server.Any("/any", get_post)
+
 	server.Run("127.0.0.1:8888")
 }
