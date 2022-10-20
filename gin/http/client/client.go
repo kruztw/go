@@ -2,25 +2,27 @@ package main
 
 import (
 	"bytes"
-	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 )
 
-type RegisterRequest struct{}
+type RegisterRequest struct {
+	Msg string
+}
 
 func main() {
 
-	body := RegisterRequest{}
+	body := RegisterRequest{Msg: "hello world"}
 
 	bBody, err := json.Marshal(body)
 	if err != nil {
 		return
 	}
 
-	url := url.URL{Scheme: "https", Host: "127.0.0.1:8888", Path: "/"}
+	url := url.URL{Scheme: "http", Host: "127.0.0.1:8888", Path: "/post"}
 
 	req, err := http.NewRequest(
 		"POST",
@@ -37,10 +39,7 @@ func main() {
 		"Bearer ",
 	)
 
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
-	client := &http.Client{Transport: tr}
+	client := &http.Client{}
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -50,4 +49,6 @@ func main() {
 
 	defer resp.Body.Close()
 
+	bytes, err := ioutil.ReadAll(resp.Body)
+	fmt.Printf("resp.body = %v\n", string(bytes))
 }
