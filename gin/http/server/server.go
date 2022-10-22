@@ -28,26 +28,19 @@ func get(c *gin.Context) {
 	data := new(IndexData)
 	data.Title = c.DefaultQuery("title", "default")
 	data.Content = c.DefaultQuery("content", "default")
-	c.HTML(http.StatusOK, "index.html", data)
-}
 
-func post(c *gin.Context) {
-	jsonData, err := c.GetRawData()
+	// use browser to verify, cookie will be set in second request
+	c.SetCookie("key", "value", 3600, "/", "localhost", false, true)
+	cookie, err := c.Cookie("key")
 	if err != nil {
-		fmt.Printf("failed to get body: %v\n", err)
-		c.Status(http.StatusNoContent)
-		return
+		fmt.Printf("cookie not set\n")
+	} else {
+		fmt.Printf("cookie: %v\n", cookie)
 	}
 
-	fmt.Printf("jsonData = %v\n", string(jsonData))
-	c.JSON(http.StatusOK, gin.H{
-		"code": 200,
-		"msg":  "success",
-	})
-}
+	//c.SetCookie("key", "value", -1, "/", "localhost", false, true) // delete cookie
 
-func get_post(c *gin.Context) {
-	fmt.Printf("it works\n")
+	c.HTML(http.StatusOK, "index.html", data)
 }
 
 func main() {
@@ -55,7 +48,6 @@ func main() {
 	server.LoadHTMLGlob("template/*")
 	server.Use(gin.Recovery()) // (a)
 	server.GET("/", get)
-	server.POST("/post", post)
 	server.GET("/panic", func(c *gin.Context) {
 		defer func() {
 			if err := recover(); err != nil { // because of (a), return 200
@@ -64,9 +56,5 @@ func main() {
 		}()
 		panic("panic")
 	})
-
-	server.Any("/any", get_post)
-	server.Static("/wtf", "template/") // http://localhost:8888/wtf/index.html
-
 	server.Run("127.0.0.1:8888")
 }
