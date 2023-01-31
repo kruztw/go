@@ -24,7 +24,7 @@ func main() {
 			vals.Field(i).SetInt(2)
 		}
 
-		if field.Name == "D" {
+		if field.Type.Kind() == reflect.Slice {
 			v := vals.Field(i)
 			v = reflect.Append(v, reflect.ValueOf(4))
 			vals.Field(i).Set(v)
