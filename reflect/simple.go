@@ -13,7 +13,7 @@ type foo struct {
 }
 
 func main() {
-	f := foo{A:1, C:"str", D:[]int{1,2,3}}
+	f := foo{A: 1, C: "str", D: []int{1, 2, 3}}
 	fields := reflect.TypeOf(&f).Elem()
 	vals := reflect.ValueOf(&f).Elem()
 
@@ -32,7 +32,11 @@ func main() {
 
 		fmt.Printf("field: %v\n", field)
 		fmt.Printf("filed.Nmae: %v\n", field.Name)
-		fmt.Printf("vals.Field(i) = %v\n", vals.Field(i))
+		fmt.Printf("vals.Field(i) = %v\n\n", vals.Field(i))
+	}
+
+	field := vals.FieldByName("E")
+	if !field.IsValid() {
+		fmt.Printf("field not exists")
 	}
 }
-
